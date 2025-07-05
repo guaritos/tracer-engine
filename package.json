@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist"
-  ],  
+  ],
   "keywords": [
     "blockchain",
     "token",
@@ -24,22 +24,25 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/guaritos/tracer-engine.git"
-  },  
+  },
   "bugs": {
     "url": "https://github.com/guaritos/tracer-engine/issues"
   },
   "homepage": "https://github.com/guaritos/tracer-engine#readme",
   "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.0.4",
+    "ts-jest": "^29.4.0",
+    "ts-node": "^10.9.2",
     "tsup": "^8.5.0",
     "typescript": "^5.8.3"
   },
   "private": false,
-
   "scripts": {
     "build": "tsc",
     "test": "jest",
     "lint": "eslint src/",
     "dev": "ts-node-dev src/index.ts"
   },
-  "prepare" : "npm run build"
+  "prepare": "npm run build"
 }

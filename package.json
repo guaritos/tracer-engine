@@ -1,0 +1,45 @@
+{
+  "name": "@guaritos/tracer-engine",
+  "version": "1.0.1",
+  "description": "A highly performant and scalable multi-hop, time-aware tracer for account-based blockchain transactions, designed for off-chain risk assessment and flow analysis.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib"
+  ],  
+  "keywords": [
+    "blockchain",
+    "token",
+    "flow",
+    "graph",
+    "analysis",
+    "risk-assessment",
+    "multi-hop",
+    "time-aware",
+    "tracer",
+    "off-chain"
+  ],
+  "author": "Guaritos (https://github.com/guaritos)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guaritos/tracer-engine.git"
+  },  
+  "bugs": {
+    "url": "https://github.com/guaritos/tracer-engine/issues"
+  },
+  "homepage": "https://github.com/guaritos/tracer-engine#readme",
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  },
+  "private": false,
+
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/",
+    "dev": "ts-node-dev src/index.ts"
+  },
+  "prepare" : "npm run build"
+}

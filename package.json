@@ -2,10 +2,10 @@
   "name": "@guaritos/tracer-engine",
   "version": "1.0.1",
   "description": "A highly performant and scalable multi-hop, time-aware tracer for account-based blockchain transactions, designed for off-chain risk assessment and flow analysis.",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "lib"
+    "dist"
   ],  
   "keywords": [
     "blockchain",

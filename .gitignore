@@ -10,6 +10,9 @@ yarn.lock
 
 # build output
 /lib
+/dist
+/out
+/build
 
 # TypeScript
 *.tsbuildinfo

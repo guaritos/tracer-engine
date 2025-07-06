@@ -40,7 +40,7 @@ class TTR extends PushPopModel {
         };
     }
 
-    get_node_rank(): Record<string, any> {
+    get_node_rank(): Map<string, number> {
         return this.p;
     }
 }
@@ -57,7 +57,7 @@ class TTRRedirect extends TTR {
         this._vis = new Set<string>();
     }
 
-    push(node: string, edges: Edge[], ...kwargs: any[]): void {
+    push(node: string, edges: Edge[]): void {
         // if residual vector is none, add empty list
         if (this.r.get(node) === undefined) {
             this.r.set(node, []);

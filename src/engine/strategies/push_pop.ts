@@ -1,3 +1,5 @@
+import { Edge } from "../items/ttr_defs";
+
 abstract class PushPopModel {
     source: string;
 
@@ -5,7 +7,7 @@ abstract class PushPopModel {
         this.source = source;
     }
 
-    push(node: any, edges: any[], ...kwargs: any[]): void {
+    push(node: string, edges: Edge[], ...kwargs: any[]): void {
         /**
          * push a node with related edges
          * @param node: the pushed node
@@ -31,7 +33,7 @@ abstract class PushPopModel {
         throw new Error("Method not implemented.");
     }
 
-    get_node_rank(): Record<string, any> {
+    get_node_rank(): Map<string, number> {
         /**
          * Get a node rank dict for the strategy
          * @return:

@@ -1,4 +1,5 @@
-const { TTR, TTRRedirect } = require('../../../src/engine/strategies/ttr');
+import { Edge, Profit } from '../../../src/engine/items/ttr_defs';
+import { TTR, TTRRedirect } from '../../../src/engine/strategies/ttr';
 
 describe('TTR Tests', () => {
   test('Create TTR', () => {
@@ -99,17 +100,12 @@ describe('TTRRedirect Tests', () => {
   test('Map sorting in TTRRedirect push method', () => {
     let r = new Map<string, any[]>();
     const node = 'node1';
-    r.set(node, [{ timestamp: 3 }, { timestamp: 1 }, { timestamp: 2 }]);
+    r.set(node, [{ timestamp: 1 }, { timestamp: 2 }, { timestamp: 3 }]);
     
     let new_r = r.get(node) || [];
-    new_r = [...new_r].sort((a: { timestamp: number; }, b: { timestamp: number; }) => a.timestamp - b.timestamp);
+    new_r = [...new_r].sort((a: { timestamp: number; }, b: { timestamp: number; }) => b.timestamp - a.timestamp);
 
-    expect(new_r).toEqual([{ timestamp: 1 }, { timestamp: 2 }, { timestamp: 3 }]);
-  });
-
-  test('TTRRedirect push method', () => {
-    const model = new TTRRedirect('test_source');
-    expect(() => model.push('node1', [], { timestamp: 1 })).not.toThrow();
+    expect(new_r).toEqual([{ timestamp: 3 }, { timestamp: 2 }, { timestamp: 1 }]);
   });
 
   test('TTRRedirect merge chips', () => {
@@ -159,5 +155,102 @@ describe('TTRRedirect Tests', () => {
     map.set('key2', 'value2');
     expect(map.get('key1')).toBe('value1');
     expect(map.get('key2')).toBe('value2');
+  });  
+
+  test('TTRRedirect push method', () => {
+    const model = new TTRRedirect('test_source');
+    const edges: Edge[] = [
+      {
+        from: 'node1', to: 'node2', symbol: 'A', value: 10, timestamp: 1, hash: '<hash1>'
+      },
+      {
+        from: 'node1', to: 'node3', symbol: 'B', value: 20, timestamp: 2, hash: '<hash2>'
+      },
+      {
+        from: 'node2', to: 'node4', symbol: 'C', value: 30, timestamp: 3, hash: '<hash3>'
+      },
+      {
+        from: 'node1', to: 'node2', symbol: 'A', value: 5, timestamp: 4, hash: '<hash4>'
+      }
+    ];
+    expect(() => model.push('node1', edges)).not.toThrow();    
+  });
+
+  test('TTRRedirect pop method', () => {
+    const model = new TTRRedirect('test_source');
+    const edges: Edge[] = [
+      {
+        from: 'node1', to: 'node2', symbol: 'A', value: 10, timestamp: 1, hash: '<hash1>'
+      },
+      {
+        from: 'node1', to: 'node3', symbol: 'B', value: 20, timestamp: 2, hash: '<hash2>'
+      }
+    ];
+    model.push('node1', edges);
+    let nextNode: string | null = null;
+    expect(() => {
+      nextNode = model.pop()[0];
+    }).not.toThrow();
+  });
+
+  test('TTRRedirect get_context_snapshot method', () => {
+    const model = new TTRRedirect('test_source');
+    const snapshot = model.get_context_snapshot();
+    expect(snapshot).toBeDefined();
+    expect(snapshot.source.value).toBe('test_source');
+    expect(snapshot.alpha.value).toBe(0.15);
+    expect(snapshot.beta.value).toBe(0.7);
+    expect(snapshot.epsilon.value).toBe(1e-3);
+  });
+
+  test('TTRRedirect get_node_rank method', () => {
+    const model = new TTRRedirect('test_source');
+    const rank = model.get_node_rank();
+    expect(rank).toBeDefined();
+    expect(rank instanceof Map).toBe(true);
+  });
+
+  test('TTRRedirect should handle empty push and pop operations gracefully', () => {
+    const model = new TTRRedirect('test_source');
+    expect(() => model.push('node1', [])).not.toThrow();
+    expect(() => model.pop()).not.toThrow();
+  });
+
+  test('TTRRedirect self_push method', () => {
+    const alpha = 0.15;
+    const model = new TTRRedirect('test_source', alpha);
+    const node = 'node1';
+    const residuals: Profit[] = [
+      { timestamp: 1, symbol: 'A', value: 10 },
+      { timestamp: 2, symbol: 'B', value: 20 },
+    ];
+    expect(() => model._self_push(node, residuals)).not.toThrow();
+    expect(model.p.get(node)).toEqual(alpha * (10 + 20)); // alpha * sum of values
+  });
+
+  test('TTRRedirect get_aggregated_edges method', () => {
+    const model = new TTRRedirect('test_source');
+    const [node1, node2] = ['node1', 'node2'];
+    const edges1: Edge[] = [
+      {
+        from: 'node1', to: 'node2', symbol: 'A', value: 10, timestamp: 1, hash: '<hash1>'
+      },
+      {
+        from: 'node1', to: 'node3', symbol: 'B', value: 20, timestamp: 2, hash: '<hash2>'
+      }
+    ];
+    const edges2: Edge[] = [
+      {
+        from: 'node2', to: 'node4', symbol: 'C', value: 30, timestamp: 3, hash: '<hash3>'
+      },
+      {
+        from: 'node1', to: 'node2', symbol: 'A', value: 5, timestamp: 4, hash: '<hash4>'
+      }
+    ];
+    model.push(node1, edges1);
+    model.push(node2, edges2);
+    const aggregatedEdges = model._get_aggregated_edges(node1, edges1);
+    expect(aggregatedEdges).toBeDefined();
+    expect(aggregatedEdges.length).toBeGreaterThan(0);
   });
 });

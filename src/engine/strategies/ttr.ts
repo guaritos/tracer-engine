@@ -1,6 +1,5 @@
-import { AccountTransferItem } from "../items/subgraph";
 import { Edge, Profit, AggregatedEdge, AggregatedEdgeProfit } from "../items/ttr_defs";
-const { PushPopModel } = require('./push_pop');
+import { PushPopModel } from './push_pop';
 
 class TTR extends PushPopModel {
     alpha: number;
@@ -30,14 +29,14 @@ class TTR extends PushPopModel {
         throw new Error("Method not implemented.");
     }
 
-    get_context_snapshot(): Record<string, Record<string, any>> {
+    get_context_snapshot(): Record<string, any> {
         return {
-            source: { value: this.source },
-            alpha: { value: this.alpha },
-            beta: { value: this.beta },
-            epsilon: { value: this.epsilon },
-            r: { value: this.r },
-            p: { value: this.p },
+            source: this.source,
+            alpha: this.alpha,
+            beta: this.beta,
+            epsilon: this.epsilon,
+            r: this.r,
+            p: this.p,
         };
     }
 
@@ -47,6 +46,7 @@ class TTR extends PushPopModel {
 }
 
 class TTRRedirect extends TTR {
+    _vis: Set<string>;
     constructor(
         source: string,
         alpha: number = 0.15,
@@ -54,7 +54,7 @@ class TTRRedirect extends TTR {
         epsilon: number = 1e-3,
     ) {
         super(source, alpha, beta, epsilon);
-        this._vis = new Set();
+        this._vis = new Set<string>();
     }
 
     push(node: string, edges: Edge[], ...kwargs: any[]): void {
@@ -132,12 +132,12 @@ class TTRRedirect extends TTR {
 
         // copy residual vector with sort and clear
         let r = this.r.get(node) || [];
-        r = [...r].sort((a, b) => a.timestamp - b.timestamp);
+        r = [...r].sort((a, b) => b.timestamp - a.timestamp);
         this.r.set(node, []);
 
         // aggregate edges
         const agg_es = this._get_aggregated_edges(node, edges);
-        agg_es.sort((a, b) => a.get_timestamp() - b.get_timestamp());
+        agg_es.sort((a, b) => b.get_timestamp() - a.get_timestamp());
 
         // push
         this._self_push(node, r);
@@ -164,7 +164,7 @@ class TTRRedirect extends TTR {
         for (const chip of r) {
             sum_r += chip.value;
         }
-        this.p.set(node, this.p.get(node)! + this.alpha * sum_r);
+        this.p.set(node, (this.p.get(node) || 0) + this.alpha * sum_r);
     }
 
     _forward_push(node: string, aggregated_edges: AggregatedEdge[], r: Profit[]): void {
@@ -190,7 +190,7 @@ class TTRRedirect extends TTR {
         }
 
         // construct index for distributing profit
-        const symbol_agg_es = new Map<string, any[]>();
+        const symbol_agg_es = new Map<string, AggregatedEdge[]>();
         const symbol_agg_es_idx = new Map<string, number[]>();
         for (let i = 0; i < aggregated_edges.length; i++) {
             const e = aggregated_edges[i];
@@ -398,7 +398,35 @@ class TTRRedirect extends TTR {
     }
 
     pop(): [any, Record<string, any>] {
-        throw new Error("Method not implemented.");
+        let node: string | null = null;
+        let r = this.epsilon;
+        for (const [_node, chips] of this.r.entries()) {
+            let sum_r = 0;
+            for (const chip of chips) {
+                sum_r += chip.value;
+            }
+            if (sum_r > r) {
+                r = sum_r;
+                node = _node;
+            }
+        }
+        if (node === null) {
+            return [null, {}];
+        }
+        return [node, {
+            residual: r,
+            allow_all_tokens: true,
+        }]
+    }
+
+    get_context_snapshot(): Record<string, any> {
+        let data = TTR.prototype.get_context_snapshot.call(this);
+        const acc_r: Record<string, number> = {};
+        for (const [_node, chips] of this.r.entries()) {
+            acc_r[_node] = chips.reduce((sum, chip) => sum + chip.value, 0);
+        }
+        data.r = acc_r;
+        return data;
     }
 
     _get_distributing_profit(
@@ -406,10 +434,10 @@ class TTRRedirect extends TTR {
         symbol: string,
         index: number,
         aggregated_edges: AggregatedEdge[],
-        distributing_index: Record<string, any>,
-        symbol_agg_es_idx: Record<string, any>,
+        distributing_index: Map<string, number[]>,
+        symbol_agg_es_idx: Map<string, number[]>,
         chip_value: number,
-    ): any[] {
+    ): AggregatedEdgeProfit[] {
         /**
          * Get distributing profit for a specific direction and symbol.
          * @param direction: 1 means input and -1 means output
@@ -421,7 +449,7 @@ class TTRRedirect extends TTR {
          * @param chip_value: the value of the chip
          * @return: a list of profit
          */
-        let rlt: any[] = [];
+        let rlt: AggregatedEdgeProfit[] = [];
 
         let stack: any[] = [];
         stack.push({ direction, symbol, index });

@@ -22,8 +22,8 @@ class Edge {
         _to: string,
         _symbol: string,
         _value: number,
-        _hash: string,
         _timestamp: number = 0,
+        _hash: string,
     ) {
         this.from = _from;
         this.to = _to;

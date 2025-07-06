@@ -96,7 +96,9 @@ const config: Config = {
   // moduleNameMapper: {},
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
-  // modulePathIgnorePatterns: [],
+  modulePathIgnorePatterns: [
+    "./test/utils/"
+  ],
 
   // Activates notifications for test results
   // notify: false,
@@ -168,6 +170,7 @@ const config: Config = {
     "\\\\node_modules\\\\",
     "\\\\dist\\\\",
     "\\\\coverage\\\\",
+    "test/utils/*"
   ],
 
   // The regexp pattern or array of patterns that Jest uses to detect test files

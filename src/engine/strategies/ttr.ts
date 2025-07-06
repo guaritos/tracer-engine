@@ -516,7 +516,6 @@ class TTRRedirect extends TTR {
                 )],
                 [edge]
             );
-            console.log(aggregated_edge.aggregated_edges);
             let new_aggregated_edge = aggregated_edge.aggregate(aggregated_edges.get(hash));
             if (new_aggregated_edge === null) {
                 continue;

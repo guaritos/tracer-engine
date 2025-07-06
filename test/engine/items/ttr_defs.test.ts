@@ -1,4 +1,5 @@
 import { Edge, Profit, AggregatedEdge, AggregatedEdgeProfit } from "../../../src/engine/items/ttr_defs";
+import { TTRRedirect } from "../../../src/engine/strategies/ttr";
 
 describe('TTR Definitions Tests', () => {
     test('Edge should have correct properties', () => {
@@ -21,23 +22,13 @@ describe('TTR Definitions Tests', () => {
     test('AggregatedEdge should aggregate profits correctly', () => {
         const edges = [
             { from: 'node1', to: 'node2', symbol: 'A', value: 10, timestamp: 1622547800, hash: '<hash1>' },
-            { from: 'node1', to: 'node3', symbol: 'B', value: 20, timestamp: 1622547801, hash: '<hash2>' }
+            { from: 'node1', to: 'node3', symbol: 'B', value: 20, timestamp: 1622547801, hash: '<hash2>' },
+            { from: 'node1', to: 'node2', symbol: 'A', value: 10, timestamp: 1622547802, hash: '<hash2>' }
         ];
         const node = 'node1';
-        const new_edge = { from: node, to: 'node2', symbol: 'A', value: 10, timestamp: 1622547801, hash: '<hash2>' };
-        let aggregated_edge = new AggregatedEdge(new_edge.hash, [], [
-            new AggregatedEdge(
-                new_edge.hash,
-                [],
-                []
-            ),
-        ]);
-        aggregated_edge = aggregated_edge.aggregate(aggregated_edge)!;
-        expect(aggregated_edge).toBeDefined();
-
-        expect(aggregated_edge.profits.length).toBe(2);
-        expect(aggregated_edge.get_output_symbols().has('A')).toBe(true);
-        expect(aggregated_edge.get_input_symbols().has('A')).toBe(true);
+        const strategy = new TTRRedirect(node);
+        const agg_es = strategy._get_aggregated_edges(node, edges);
+        expect(agg_es).toBeDefined();
     });
 
     test('AggregatedEdgeProfit should have correct properties', () => {

@@ -58,19 +58,19 @@ class AggregatedEdge {
 
     hash: string;
     profits: AggregatedEdgeProfit[];
-    aggregated_edges: AggregatedEdge[];
+    aggregated_edges: any[];
 
     constructor(
         _hash: string,
         _profits: AggregatedEdgeProfit[],
-        _aggregated_edges: AggregatedEdge[],
+        _aggregated_edges: any[],
     ) {
         this.hash = _hash;
         this.profits = _profits;
         this.aggregated_edges = _aggregated_edges;
     }
 
-    aggregate(aggregated_edge: AggregatedEdge | undefined | null): AggregatedEdge | null {
+    aggregate(aggregated_edge: any): AggregatedEdge | null {
         if (aggregated_edge === null || aggregated_edge === undefined) {
             return null;
         }

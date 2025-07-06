@@ -5,7 +5,7 @@ class TTR extends PushPopModel {
     alpha: number;
     beta: number;
     epsilon: number;
-    p: Map<string, number>;
+    p: Record<string, number>;
     r: Map<string, Profit[]>;
     constructor(
         source: string,
@@ -17,7 +17,7 @@ class TTR extends PushPopModel {
         this.alpha = alpha;
         this.beta = beta;
         this.epsilon = epsilon;
-        this.p = new Map<string, number>();
+        this.p = {};
         this.r = new Map<string, Profit[]>();
     }
 
@@ -40,7 +40,7 @@ class TTR extends PushPopModel {
         };
     }
 
-    get_node_rank(): Map<string, number> {
+    get_node_rank(): Record<string, number> {
         return this.p;
     }
 }
@@ -81,7 +81,7 @@ class TTRRedirect extends TTR {
             }
 
             // first self push
-            this.p.set(this.source, this.alpha * symbols.size);
+            this.p[this.source] = this.alpha * symbols.size;
 
             // first forward and backward push
             for (const e of edges) {
@@ -164,7 +164,7 @@ class TTRRedirect extends TTR {
         for (const chip of r) {
             sum_r += chip.value;
         }
-        this.p.set(node, (this.p.get(node) || 0) + this.alpha * sum_r);
+        this.p[node] = (this.p[node] || 0) + this.alpha * sum_r;
     }
 
     _forward_push(node: string, aggregated_edges: AggregatedEdge[], r: Profit[]): void {
@@ -514,13 +514,9 @@ class TTRRedirect extends TTR {
                     edge.timestamp,
                     edge.symbol
                 )],
-                [new AggregatedEdge(
-                    edge.hash,
-                    [],
-                    []
-                )]
+                [edge]
             );
-
+            console.log(aggregated_edge.aggregated_edges);
             let new_aggregated_edge = aggregated_edge.aggregate(aggregated_edges.get(hash));
             if (new_aggregated_edge === null) {
                 continue;

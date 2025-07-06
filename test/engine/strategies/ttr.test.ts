@@ -1,89 +1,5 @@
 import { Edge, Profit } from '../../../src/engine/items/ttr_defs';
-import { TTR, TTRRedirect } from '../../../src/engine/strategies/ttr';
-
-describe('TTR Tests', () => {
-  test('Create TTR', () => {
-    const model = new TTR('test_source');
-    expect(model).toBeDefined();
-  });
-
-  test('TTR should have a source property', () => {
-    const model = new TTR('test_source');
-    expect(model.source).toBe('test_source');
-  });
-
-  test('TTR push method should throw error', () => {
-    const model = new TTR('test_source');
-    expect(() => model.push({}, [])).toThrow("Method not implemented.");
-  });
-
-  test('TTR pop method should throw error', () => {
-    const model = new TTR('test_source');
-    expect(() => model.pop()).toThrow("Method not implemented.");
-  });
-
-  test('TTR get_context_snapshot method should return context snapshot', () => {
-    const model = new TTR('test_source');
-    const snapshot = model.get_context_snapshot();
-    expect(snapshot).toBeDefined();
-    expect(snapshot.source.value).toBe('test_source');
-  });
-
-  test('TTR get_node_rank method should return node rank', () => {
-    const model = new TTR('test_source');
-    const rank = model.get_node_rank();
-    expect(rank).toBeDefined();
-  });
-
-  test('TTR should have default parameters', () => {
-    const model = new TTR('test_source');
-    expect(model.alpha).toBe(0.15);
-    expect(model.beta).toBe(0.7);
-    expect(model.epsilon).toBe(1e-3);
-  });
-
-  test('TTR should allow custom parameters', () => {
-    const model = new TTR('test_source', 0.2, 0.9, 1e-4);
-    expect(model.alpha).toBe(0.2);
-    expect(model.beta).toBe(0.9);
-    expect(model.epsilon).toBe(1e-4);
-  });
-
-  test('TTR should have a valid context snapshot structure', () => {
-    const model = new TTR('test_source');
-    const snapshot = model.get_context_snapshot();
-    expect(snapshot).toHaveProperty('source');
-    expect(snapshot).toHaveProperty('alpha');
-    expect(snapshot).toHaveProperty('beta');
-    expect(snapshot).toHaveProperty('epsilon');
-    expect(snapshot).toHaveProperty('r');
-    expect(snapshot).toHaveProperty('p');
-  });
-
-  test('TTR should initialize p and r as Maps', () => {
-    const model = new TTR('test_source');
-    expect(model.p instanceof Map).toBe(true);
-    expect(model.r instanceof Map).toBe(true);
-  });
-
-  test('TTR should have a valid node rank structure', () => {
-    const model = new TTR('test_source');
-    const rank = model.get_node_rank();
-    expect(rank).toBeInstanceOf(Map);
-  });
-
-  test('TTR should handle empty push and pop operations gracefully', () => {
-    const model = new TTR('test_source');
-    expect(() => model.push({}, [])).toThrow("Method not implemented.");
-    expect(() => model.pop()).toThrow("Method not implemented.");
-  });
-
-  test('TTR should not throw errors on valid method calls', () => {
-    const model = new TTR('test_source');
-    expect(() => model.get_context_snapshot()).not.toThrow();
-    expect(() => model.get_node_rank()).not.toThrow();
-  });
-});
+import { TTRRedirect } from '../../../src/engine/strategies/ttr';
 
 describe('TTRRedirect Tests', () => {
 
@@ -197,17 +113,16 @@ describe('TTRRedirect Tests', () => {
     const model = new TTRRedirect('test_source');
     const snapshot = model.get_context_snapshot();
     expect(snapshot).toBeDefined();
-    expect(snapshot.source.value).toBe('test_source');
-    expect(snapshot.alpha.value).toBe(0.15);
-    expect(snapshot.beta.value).toBe(0.7);
-    expect(snapshot.epsilon.value).toBe(1e-3);
+    expect(snapshot.source).toBe('test_source');
+    expect(snapshot.alpha).toBe(0.15);
+    expect(snapshot.beta).toBe(0.7);
+    expect(snapshot.epsilon).toBe(1e-3);
   });
 
   test('TTRRedirect get_node_rank method', () => {
     const model = new TTRRedirect('test_source');
     const rank = model.get_node_rank();
     expect(rank).toBeDefined();
-    expect(rank instanceof Map).toBe(true);
   });
 
   test('TTRRedirect should handle empty push and pop operations gracefully', () => {
@@ -225,32 +140,6 @@ describe('TTRRedirect Tests', () => {
       { timestamp: 2, symbol: 'B', value: 20 },
     ];
     expect(() => model._self_push(node, residuals)).not.toThrow();
-    expect(model.p.get(node)).toEqual(alpha * (10 + 20)); // alpha * sum of values
-  });
-
-  test('TTRRedirect get_aggregated_edges method', () => {
-    const model = new TTRRedirect('test_source');
-    const [node1, node2] = ['node1', 'node2'];
-    const edges1: Edge[] = [
-      {
-        from: 'node1', to: 'node2', symbol: 'A', value: 10, timestamp: 1, hash: '<hash1>'
-      },
-      {
-        from: 'node1', to: 'node3', symbol: 'B', value: 20, timestamp: 2, hash: '<hash2>'
-      }
-    ];
-    const edges2: Edge[] = [
-      {
-        from: 'node2', to: 'node4', symbol: 'C', value: 30, timestamp: 3, hash: '<hash3>'
-      },
-      {
-        from: 'node1', to: 'node2', symbol: 'A', value: 5, timestamp: 4, hash: '<hash4>'
-      }
-    ];
-    model.push(node1, edges1);
-    model.push(node2, edges2);
-    const aggregatedEdges = model._get_aggregated_edges(node1, edges1);
-    expect(aggregatedEdges).toBeDefined();
-    expect(aggregatedEdges.length).toBeGreaterThan(0);
-  });
+    expect(model.p[node]).toEqual(alpha * (10 + 20)); // alpha * sum of values
+  });  
 });

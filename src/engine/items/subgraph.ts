@@ -1,15 +1,23 @@
-const { ContextualItem } = require('./defs');
+import { ContextualItem } from "./defs";
 
 class PopItem extends ContextualItem {
     node: string = '';  // Node
 }
 
 class StrategySnapshotItem extends ContextualItem {
-    data: Map<string, any> = new Map();  // Dict
+    data: Record<string, any>;  // Dict
+    constructor(data: Record<string, any>) {
+        super();
+        this.data = data;
+    }
 }
 
 class RankItem extends ContextualItem {
-    data: Map<string, any> = new Map();  // Dict
+    data: Record<string, any>;  // Dict
+    constructor(data: Record<string, number>) {
+        super();
+        this.data = data;
+    }  
 }
 
 class AccountTransferItem extends ContextualItem {

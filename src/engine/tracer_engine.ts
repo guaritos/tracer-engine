@@ -1,3 +1,4 @@
+import { RankItem, StrategySnapshotItem } from "./items/subgraph";
 import { Edge } from "./items/ttr_defs";
 import { PushPopModel } from "./strategies/push_pop";
 import { TTRRedirect } from "./strategies/ttr";
@@ -23,10 +24,10 @@ class TracerEngine {
 
         // generate a strategy context item
         const snapshot_data = this.strategy.get_context_snapshot();
-        yield snapshot_data;
+        yield new StrategySnapshotItem(snapshot_data);
 
         const ranks = this.strategy.get_node_rank();
-        yield ranks;
+        yield new RankItem(ranks);
 
         // pop account from the strategy
         const [popped_node, context_kwargs] = this.strategy.pop();

@@ -33,7 +33,7 @@ abstract class PushPopModel {
         throw new Error("Method not implemented.");
     }
 
-    get_node_rank(): Map<string, number> {
+    get_node_rank(): Record<string, number> {
         /**
          * Get a node rank dict for the strategy
          * @return:

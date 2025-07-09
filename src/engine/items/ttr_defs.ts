@@ -11,12 +11,13 @@ class Edge {
      * @param _hash - The hash of the transaction.
      * @param _timestamp - The timestamp of the transaction (optional).
      */
-    from: string;
-    to: string;
-    symbol: string;
-    value: number;
-    hash: string;
-    timestamp: number;
+    from: string = "";
+    to: string = "";
+    symbol: string = "";
+    value: number = 0;
+    hash: string = "";
+    timestamp: number = 0;
+
     constructor(
         _from: string,
         _to: string,

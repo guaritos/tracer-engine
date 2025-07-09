@@ -32,6 +32,7 @@ class TracerEngine {
 
         // pop account from the strategy
         const [popped_node, context_kwargs] = this.strategy.pop();
+        
         if (popped_node === null) {
             return;
         }

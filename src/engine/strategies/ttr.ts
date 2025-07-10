@@ -5,7 +5,7 @@ class TTR extends PushPopModel {
     alpha: number;
     beta: number;
     epsilon: number;
-    p: Record<string, number>;
+    p: Map<string, number>;
     r: Map<string, Profit[]>;
     constructor(
         source: string,
@@ -17,7 +17,7 @@ class TTR extends PushPopModel {
         this.alpha = alpha;
         this.beta = beta;
         this.epsilon = epsilon;
-        this.p = {};
+        this.p = new Map<string, number>();
         this.r = new Map<string, Profit[]>();
     }
 
@@ -40,7 +40,7 @@ class TTR extends PushPopModel {
         };
     }
 
-    get_node_rank(): Record<string, number> {
+    get_node_rank(): Map<string, number> {
         return this.p;
     }
 }
@@ -59,7 +59,7 @@ class TTRRedirect extends TTR {
 
     push(node: string, edges: Edge[]): void {
         // if residual vector is none, add empty list
-        if (this.r.get(node) === undefined) {
+        if (!(this.r.get(node))) {
             this.r.set(node, []);
         }
 
@@ -81,7 +81,7 @@ class TTRRedirect extends TTR {
             }
 
             // first self push
-            this.p[this.source] = this.alpha * symbols.size;
+            this.p.set(this.source, this.alpha * symbols.size);
 
             // first forward and backward push
             for (const e of edges) {
@@ -111,16 +111,15 @@ class TTRRedirect extends TTR {
                     }
                 }
             }
-
             for (const symbol of symbols) {
                 if ((out_sum.get(symbol) || 0) === 0) {
-                    this.r.get(this.source)?.push({
+                    this.r.get(this.source)!.push({
                         symbol: symbol,
                         value: (1 - this.alpha) * this.beta,
                         timestamp: 0,
                     });
                 } else if ((in_sum.get(symbol) || 0) === 0) {
-                    this.r.get(this.source)?.push({
+                    this.r.get(this.source)!.push({
                         symbol: symbol,
                         value: (1 - this.alpha) * (1 - this.beta),
                         timestamp: Number.MAX_SAFE_INTEGER,
@@ -132,11 +131,11 @@ class TTRRedirect extends TTR {
 
         // copy residual vector with sort and clear
         let r = this.r.get(node) || [];
-        r = [...r].sort((a, b) => b.timestamp - a.timestamp);
+        r.sort((a, b) => b.timestamp - a.timestamp);
         this.r.set(node, []);
 
         // aggregate edges
-        const agg_es = this._get_aggregated_edges(node, edges);
+        let agg_es = this._get_aggregated_edges(node, edges);
         agg_es.sort((a, b) => b.get_timestamp() - a.get_timestamp());
 
         // push
@@ -148,12 +147,12 @@ class TTRRedirect extends TTR {
         for (const [node, chips] of this.r.entries()) {
             const _chips = new Map();
             for (const chip of chips) {
-                const key = (chip.symbol, chip.timestamp);
+                const key = `${chip.symbol},${chip.timestamp}`;
                 if (!_chips.has(key)) {
                     _chips.set(key, chip);
                     continue;
                 }
-                _chips.get(key)['value'] += chip.value;
+                _chips.get(key).value += chip.value;
             }
             this.r.set(node, Array.from(_chips.values()));
         }
@@ -164,7 +163,7 @@ class TTRRedirect extends TTR {
         for (const chip of r) {
             sum_r += chip.value;
         }
-        this.p[node] = (this.p[node] || 0) + this.alpha * sum_r;
+        this.p.set(node, (this.p.get(node) || 0) + this.alpha * sum_r);
     }
 
     _forward_push(node: string, aggregated_edges: AggregatedEdge[], r: Profit[]): void {
@@ -367,7 +366,7 @@ class TTRRedirect extends TTR {
                         inc
                     )
                     for (const dp of distributing_profits) {
-                        if (this.r.get(dp.address) === undefined) {
+                        if (!this.r.get(dp.address)) {
                             this.r.set(dp.address, []);
                         }
                         this.r.get(dp.address)!.push({
@@ -389,6 +388,9 @@ class TTRRedirect extends TTR {
             j -= 1;
         }
         for (const [key, value] of cs.entries()) {
+            if (!this.r.get(node)) {
+                this.r.set(node, []);
+            }
             this.r.get(node)!.push(new Profit(
                 key.symbol,
                 value,
@@ -397,7 +399,7 @@ class TTRRedirect extends TTR {
         }        
     }
 
-    pop(): [any, Record<string, any>] {
+    pop(): [string | null, Record<string, any>] {
         let node: string | null = null;
         let r = this.epsilon;
         for (const [_node, chips] of this.r.entries()) {

@@ -2,6 +2,11 @@ import { ContextualItem } from "./defs";
 
 class PopItem extends ContextualItem {
     node: string = '';  // Node
+
+    constructor(_node: string) {
+        super();
+        this.node = _node;
+    }
 }
 
 class StrategySnapshotItem extends ContextualItem {
@@ -13,8 +18,8 @@ class StrategySnapshotItem extends ContextualItem {
 }
 
 class RankItem extends ContextualItem {
-    data: Record<string, any>;  // Dict
-    constructor(data: Record<string, number>) {
+    data: Map<string, any>;  // Dict
+    constructor(data: Map<string, number>) {
         super();
         this.data = data;
     }  

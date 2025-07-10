@@ -17,7 +17,7 @@ abstract class PushPopModel {
          */
         throw new Error("Method not implemented.");
     }
-    pop(): [any, Record<string, any>] {
+    pop(): [string | null, Record<string, any>] {
         /**
          * pop a node for the next step
          * @return: the popped node and its context
@@ -33,7 +33,7 @@ abstract class PushPopModel {
         throw new Error("Method not implemented.");
     }
 
-    get_node_rank(): Record<string, number> {
+    get_node_rank(): Map<string, number> {
         /**
          * Get a node rank dict for the strategy
          * @return:

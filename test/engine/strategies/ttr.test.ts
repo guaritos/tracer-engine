@@ -1,5 +1,6 @@
 import { Edge, Profit } from '../../../src/engine/items/ttr_defs';
 import { TTRRedirect } from '../../../src/engine/strategies/ttr';
+import { Bucket } from '../../utils/bucket';
 import { generateRandomAddress, generateRandomEdges } from '../../utils/generate_edges';
 
 describe('TTRRedirect Tests', () => {
@@ -141,12 +142,16 @@ describe('TTRRedirect Tests', () => {
       { timestamp: 2, symbol: 'B', value: 20 },
     ];
     expect(() => model._self_push(node, residuals)).not.toThrow();
-    expect(model.p[node]).toEqual(alpha * (10 + 20)); // alpha * sum of values
+    expect(model.p.get(node)).toEqual(alpha * (10 + 20)); // alpha * sum of values
   });  
 
   test('TTRRedirect push with generated edges', () => {
-    const source = generateRandomAddress();
-    const edges = generateRandomEdges();
+    const addresses: Bucket<string> = new Bucket();
+    for (let i = 0; i < 100; i++) {
+      addresses.add(generateRandomAddress());
+    }
+    const source = addresses.getRandomItem();
+    const edges = generateRandomEdges(source, addresses);
     const model = new TTRRedirect(source);
     model.push(source, edges);
     const [popped_node, context_kwargs] = model.pop();

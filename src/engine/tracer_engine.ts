@@ -12,15 +12,19 @@ class TracerEngine {
             target: 'pino-pretty'
         }
     })
+    private enable_log = false;
 
-    constructor(source: string) {
+    constructor(source: string, enable_log?: boolean) {
         this.strategy = new TTRRedirect(source);
+        if (enable_log) this.enable_log = enable_log;
     }
 
     *push_pop(node: string, edges: Edge[]) {
-        this.log.info(
-            `[${this.class_name}] Pushing: ${node}, with ${edges.length} transfer`
-        )
+        if (this.enable_log) { 
+            this.log.info(
+                `[${this.class_name}] Pushing: ${node}, with ${edges.length} transfer`
+            )
+        }
         this.strategy.push(node, edges);
 
         // generate a strategy context item
@@ -36,9 +40,11 @@ class TracerEngine {
         if (popped_node === null) {
             return;
         }
-        this.log.info(
-            `[${this.class_name}] Popping: ${popped_node}, with args {residual: ${context_kwargs.residual}, allow_all_token: ${context_kwargs.allow_all_tokens}}`
-        )
+        if (this.enable_log) {
+            this.log.info(
+                `[${this.class_name}] Popping: ${popped_node}, with args {residual: ${context_kwargs.residual}, allow_all_token: ${context_kwargs.allow_all_tokens}}`
+            )
+        }
         let pop_item = new PopItem(popped_node);
         pop_item.set_context_kwargs(context_kwargs);
         yield pop_item;

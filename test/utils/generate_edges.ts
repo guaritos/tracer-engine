@@ -1,4 +1,5 @@
-import { Edge } from '../../src/engine/items/ttr_defs'
+import { Edge } from '../../src/engine/items/ttr_defs';
+import { Bucket } from './bucket';
 
 // Helper function to generate a random hexadecimal address
 const generateRandomAddress = (): string => {
@@ -13,15 +14,15 @@ const generateRandomHash = (): string => {
 // Array of common cryptocurrency symbols
 const cryptoSymbols: string[] = ['BTC', 'ETH', 'USDT', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'SHIB', 'DOT'];
 
-function generateRandomEdges(amount: number = 100): Edge[] {
+function generateRandomEdges(source: string, addresses: Bucket<string>, amount: number = 100): Edge[] {
     let edges: Edge[] = [];
     for (let i = 0; i < amount; i++) {
-        const fromAddress = generateRandomAddress();
-        const toAddress = generateRandomAddress();
+        const fromAddress = source;
+        const toAddress = addresses.getRandomItem();
         const symbol = cryptoSymbols[Math.floor(Math.random() * cryptoSymbols.length)];
         const value = parseFloat((Math.random() * 10000).toFixed(2)); // Random value up to 10000 with 2 decimal places
         const hash = generateRandomHash();
-        const timestamp = Math.floor(Date.now() / 1000) - Math.floor(Math.random() * 365 * 24 * 60 * 60); // Random timestamp within the last year
+        const timestamp = Math.floor(Date.now()) - Math.floor(Math.random() * 365 * 24 * 60 * 60 * 1000); // Random timestamp within the last year
 
         edges.push({
             from: fromAddress,

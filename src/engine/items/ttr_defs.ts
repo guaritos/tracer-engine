@@ -19,12 +19,12 @@ class Edge {
     timestamp: number = 0;
 
     constructor(
-        _from: string,
-        _to: string,
-        _symbol: string,
-        _value: number,
+        _from: string = "",
+        _to: string = "",
+        _symbol: string = "",
+        _value: number = 0,
         _timestamp: number = 0,
-        _hash: string,
+        _hash: string = "",
     ) {
         this.from = _from;
         this.to = _to;

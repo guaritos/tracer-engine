@@ -62,7 +62,7 @@ describe('Tracer Engine Tests', () => {
         let source = addresses.getRandomItem();
         let edges_amount = 500;
         const get_edges = async (source: string) => { return generateRandomEdges(source, addresses, edges_amount) };
-        let result = await new TracerEngine(source, {enable_log: true}).startTrace(get_edges);
+        let result = await new TracerEngine(source, {enable_log: false}).startTrace(get_edges);
         expect(result.rank_items.size).toBeGreaterThan(1);
         console.log(result.strategy_snap_shot_items);
     });

@@ -18,8 +18,8 @@ class StrategySnapshotItem extends ContextualItem {
 }
 
 class RankItem extends ContextualItem {
-    data: Map<string, any>;  // Dict
-    constructor(data: Map<string, number>) {
+    data: Record<string, number>;  // Dict
+    constructor(data: Record<string, number>) {
         super();
         this.data = data;
     }  

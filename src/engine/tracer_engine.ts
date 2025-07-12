@@ -15,7 +15,7 @@ interface TraceFilters {
 
 export class TraceResult {
     strategy_snap_shot_items: Record<string, any> = {};
-    rank_items: Map<string, number> = new Map();
+    rank_items: Record<string, number> = {};
 }
 
 class TracerEngine {

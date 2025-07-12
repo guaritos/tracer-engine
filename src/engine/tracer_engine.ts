@@ -1,13 +1,16 @@
-import { AccountTransferItem, PopItem, RankItem, StrategySnapshotItem } from "./items/subgraph";
+import { PopItem, RankItem, StrategySnapshotItem } from "./items/subgraph";
 import { Edge } from "./items/ttr_defs";
 import { PushPopModel } from "./strategies/push_pop";
 import { TTRRedirect } from "./strategies/ttr";
 const pino = require('pino');
 
 export interface TraceOptions {
-    enable_log: boolean,
-    max_depth: number,
-    token_filters: string[],
+    max_depth?: number,
+    filters?: TraceFilters,
+}
+
+interface TraceFilters {
+    token_filters?: string[],
 }
 
 export class TraceResult {
@@ -36,11 +39,9 @@ class TracerEngine {
     }
 
     *push_pop(node: string, edges: Edge[]) {
-        if (this.enable_log) { 
-            this.log.info(
-                `[${this.class_name}] Pushing: ${node}, with ${edges.length} transfer`
-            )
-        }
+        this.enable_log && this.log.info(
+            `[${this.class_name}] Pushing: ${node}, with ${edges.length} transfer`
+        );
         this.strategy.push(node, edges);
 
         // generate a strategy context item
@@ -53,35 +54,36 @@ class TracerEngine {
         // pop account from the strategy
         const [popped_node, context_kwargs] = this.strategy.pop();
         
-        if (popped_node === null) {
+        if (popped_node === null) {            
             return;
         }
-        if (this.enable_log) {
-            this.log.info(
-                `[${this.class_name}] Popping: ${popped_node}, with args {residual: ${context_kwargs.residual}, allow_all_token: ${context_kwargs.allow_all_tokens}}`
-            )
-        }
+        this.enable_log && this.log.info(
+            `[${this.class_name}] Popping: ${popped_node}, with args {residual: ${context_kwargs.residual}, allow_all_token: ${context_kwargs.allow_all_tokens}}`
+        );
+        
         let pop_item = new PopItem(popped_node);
         pop_item.set_context_kwargs(context_kwargs);
         yield pop_item;
     }
     
     async startTrace(
-        get_edges: (node: string) => Promise<Edge[]>,
+        get_edges: (
+            node: string, 
+            filter?: TraceFilters,
+        ) => Promise<Edge[]>,
         trace_options?: TraceOptions,
     ): Promise<TraceResult> {
-        const enable_log = (trace_options) ? trace_options.enable_log : true;
-        let depth = 0;
-
         let result: TraceResult = new TraceResult();
+        let depth = 0;
         
-        const edges = await get_edges(this.strategy.source);
+        const edges = await get_edges(this.strategy.source, trace_options?.filters);
+        
+        const start_time = Date.now();
         let data = this.push_pop(this.strategy.source, edges);
-
         let curr = data.next();
-
+        
         while (!curr.done) {
-            if (trace_options && depth > trace_options.max_depth) {
+            if (trace_options && trace_options.max_depth && depth > trace_options.max_depth) {
                 break;
             }
 
@@ -100,11 +102,16 @@ class TracerEngine {
             else if (curr.value instanceof PopItem) {
                 const node = curr.value.node;
                 if (!node) break;
-                data = this.push_pop(node, await get_edges(node));                
+                data = this.push_pop(node, await get_edges(node, trace_options?.filters));                
                 curr = data.next();
             }
             depth++;
         }
+        const end_time = Date.now();
+        const time_elapsed = end_time - start_time;
+        this.enable_log && this.log.info(
+            `${this.class_name} Finish tracing after ${new Date(time_elapsed).toISOString().slice(11, 19)}`
+        );
         return result;
     }
 }

@@ -4,20 +4,20 @@ import { Bucket } from '../utils/bucket';
 import { generateRandomAddress, generateRandomEdges } from '../utils/generate_edges';
 
 describe('Tracer Engine Tests', () => {
-    // test('Tracer Engine push_pop with generated data', () => {
-    //     const addresses: Bucket<string> = new Bucket();
-    //     for (let i = 0; i < 100; i++) {
-    //         addresses.add(generateRandomAddress());
-    //     } 
-    //     const source = addresses.getRandomItem();
-    //     const edges = generateRandomEdges(addresses);
-    //     const engine = new TracerEngine(source);
-    //     const data = engine.push_pop(source,edges);
-    //     for (const result of data){
-    //         expect(result).toBeDefined();
-    //         // console.log(result);
-    //     }
-    // });
+    test('Tracer Engine push_pop with generated data', () => {
+        const addresses: Bucket<string> = new Bucket();
+        for (let i = 0; i < 100; i++) {
+            addresses.add(generateRandomAddress());
+        } 
+        const source = addresses.getRandomItem();
+        const edges = generateRandomEdges(source, addresses);
+        const engine = new TracerEngine(source);
+        const data = engine.push_pop(source,edges);
+        for (const result of data){
+            expect(result).toBeDefined();
+            // console.log(result);
+        }
+    });
 
     test('Tracer Engine continous push_pop until normal exit', () => {
         const addresses: Bucket<string> = new Bucket();
@@ -27,11 +27,11 @@ describe('Tracer Engine Tests', () => {
         let source = addresses.getRandomItem();
         let edges_amount = 500
         let edges = generateRandomEdges(source, addresses, edges_amount);
-        const engine = new TracerEngine(source, true);
+        const engine = new TracerEngine(source, {enable_log: true});
         let data = engine.push_pop(source, edges);
         let curr = data.next();
         while (!curr.done) {
-            // StrategeSnapshotItem
+            // StrategySnapshotItem
             expect(curr.value).toBeInstanceOf(StrategySnapshotItem);
             // console.log(curr.value);
             // RankItem
@@ -52,5 +52,17 @@ describe('Tracer Engine Tests', () => {
             }
         }
         expect(curr.done).toBeTruthy();
+    });
+
+    test('Tracer Engine startTrace', () => {
+        const addresses: Bucket<string> = new Bucket();
+        for (let i = 0; i < 100; i++) {
+            addresses.add(generateRandomAddress());
+        } 
+        let source = addresses.getRandomItem();
+        let edges_amount = 500
+        const get_edges = (source: string) => { return generateRandomEdges(source, addresses, edges_amount) };
+        let result = TracerEngine.startTrace(source, get_edges);
+        expect(result.rank_items.size).toBeGreaterThan(1);
     });
 });

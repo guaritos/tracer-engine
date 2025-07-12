@@ -1,8 +1,19 @@
-import { PopItem, RankItem, StrategySnapshotItem } from "./items/subgraph";
+import { AccountTransferItem, PopItem, RankItem, StrategySnapshotItem } from "./items/subgraph";
 import { Edge } from "./items/ttr_defs";
 import { PushPopModel } from "./strategies/push_pop";
 import { TTRRedirect } from "./strategies/ttr";
 const pino = require('pino');
+
+export interface TraceOptions {
+    enable_log: boolean,
+    max_depth: number,
+    token_filters: string[],
+}
+
+export class TraceResult {
+    strategy_snap_shot_items: Record<string, any> = {};
+    rank_items: Map<string, number> = new Map();
+}
 
 class TracerEngine {
     private class_name: string = "TracerEngine";
@@ -14,9 +25,14 @@ class TracerEngine {
     })
     private enable_log = false;
 
-    constructor(source: string, enable_log?: boolean) {
+    constructor(
+        source: string,
+        options?: {
+            enable_log?: boolean,
+        }
+    ) {
         this.strategy = new TTRRedirect(source);
-        if (enable_log) this.enable_log = enable_log;
+        if (options && options.enable_log) this.enable_log = options.enable_log;
     }
 
     *push_pop(node: string, edges: Edge[]) {
@@ -48,6 +64,50 @@ class TracerEngine {
         let pop_item = new PopItem(popped_node);
         pop_item.set_context_kwargs(context_kwargs);
         yield pop_item;
+    }
+    
+    static startTrace(
+        source: string,
+        get_edges: (node: string) => Edge[],
+        trace_options?: TraceOptions,
+    ): TraceResult {
+        const enable_log = (trace_options) ? trace_options.enable_log : true;
+        let depth = 0;
+
+        const engine = new TracerEngine(source, {enable_log});
+        let result: TraceResult = new TraceResult();
+        
+        const edges = get_edges(source);
+        let data = engine.push_pop(source, edges);
+
+        let curr = data.next();
+
+        while (!curr.done) {
+            if (trace_options && depth > trace_options.max_depth) {
+                break;
+            }
+
+            // StrategySnapshotItem
+            result.strategy_snap_shot_items = (curr.value as StrategySnapshotItem).data;
+            
+            // RankItem
+            curr = data.next();
+            result.rank_items = (curr.value as RankItem).data;
+
+            // PopItem or empty return;
+            curr = data.next();
+            if (curr.done) {
+                break;
+            }
+            else if (curr.value instanceof PopItem) {
+                const node = curr.value.node;
+                if (!node) break;
+                data = engine.push_pop(node, get_edges(node));                
+                curr = data.next();
+            }
+            depth++;
+        }
+        return result;
     }
 }
 

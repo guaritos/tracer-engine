@@ -47,6 +47,7 @@ class TTR extends PushPopModel {
 
 class TTRRedirect extends TTR {
     _vis: Set<string>;
+    _added_edges_hash: Set<string>;
     constructor(
         source: string,
         alpha: number = 0.15,
@@ -55,6 +56,7 @@ class TTRRedirect extends TTR {
     ) {
         super(source, alpha, beta, epsilon);
         this._vis = new Set<string>();
+        this._added_edges_hash = new Set<string>();
     }
 
     push(node: string, edges: Edge[]): void {
@@ -126,6 +128,10 @@ class TTRRedirect extends TTR {
                     });
                 }
             }
+
+            for (const e of edges) {
+                this._added_edges_hash.add(e.hash);
+            }
             return;
         }
 
@@ -134,9 +140,17 @@ class TTRRedirect extends TTR {
         r.sort((a, b) => b.timestamp - a.timestamp);
         this.r.set(node, []);
 
+        // filter added edges
+        edges = edges.filter(e => !this._added_edges_hash.has(e.hash));
+
         // aggregate edges
         let agg_es = this._get_aggregated_edges(node, edges);
         agg_es.sort((a, b) => b.get_timestamp() - a.get_timestamp());
+
+        // mark edges as added after having been aggregated
+        for (const e of edges) {
+            this._added_edges_hash.add(e.hash);
+        }
 
         // push
         this._self_push(node, r);

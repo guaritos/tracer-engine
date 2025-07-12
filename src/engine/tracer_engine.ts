@@ -66,16 +66,16 @@ class TracerEngine {
         yield pop_item;
     }
     
-    startTrace(
-        get_edges: (node: string) => Edge[],
+    async startTrace(
+        get_edges: (node: string) => Promise<Edge[]>,
         trace_options?: TraceOptions,
-    ): TraceResult {
+    ): Promise<TraceResult> {
         const enable_log = (trace_options) ? trace_options.enable_log : true;
         let depth = 0;
 
         let result: TraceResult = new TraceResult();
         
-        const edges = get_edges(this.strategy.source);
+        const edges = await get_edges(this.strategy.source);
         let data = this.push_pop(this.strategy.source, edges);
 
         let curr = data.next();
@@ -100,7 +100,7 @@ class TracerEngine {
             else if (curr.value instanceof PopItem) {
                 const node = curr.value.node;
                 if (!node) break;
-                data = this.push_pop(node, get_edges(node));                
+                data = this.push_pop(node, await get_edges(node));                
                 curr = data.next();
             }
             depth++;

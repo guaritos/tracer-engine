@@ -60,9 +60,9 @@ describe('Tracer Engine Tests', () => {
             addresses.add(generateRandomAddress());
         } 
         let source = addresses.getRandomItem();
-        let edges_amount = 500
+        let edges_amount = 500;
         const get_edges = (source: string) => { return generateRandomEdges(source, addresses, edges_amount) };
-        let result = TracerEngine.startTrace(source, get_edges);
+        let result = new TracerEngine(source).startTrace(get_edges);
         expect(result.rank_items.size).toBeGreaterThan(1);
     });
 });

@@ -35,6 +35,24 @@ class Edge {
     }
 }
 
+class WeightedEdge {
+    from: string;
+    to: string;
+    weight: number;
+    symbol: string;
+    hash: string;
+    timestamp: number;
+
+    constructor(params: {from: string, to: string, weight: number, symbol: string, hash: string, timestamp: number}) {
+        this.from = params.from;
+        this.to = params.to;
+        this.weight = params.weight;
+        this.symbol = params.symbol;
+        this.hash = params.hash;
+        this.timestamp = params.timestamp;
+    }
+}
+
 class Profit {
     constructor(
         public symbol: string,
@@ -71,9 +89,9 @@ class AggregatedEdge {
         this.aggregated_edges = _aggregated_edges;
     }
 
-    aggregate(aggregated_edge: any): AggregatedEdge | null {
+    aggregate(aggregated_edge: any): AggregatedEdge {
         if (aggregated_edge === null || aggregated_edge === undefined) {
-            return null;
+            return this;
         }
         if (!(aggregated_edge instanceof AggregatedEdge)) {
             throw new Error("Invalid aggregated edge");
@@ -99,8 +117,7 @@ class AggregatedEdge {
                 continue;
             }
 
-            let sgn = 1;
-            sgn *= _profit.value > 0 ? 1 : -1;
+            let sgn = _profit.value > 0 ? 1 : -1;
             sgn *= _profit.value + profit.value > 0 ? 1 : -1;
             const aggregated_value = _profit.value + profit.value;
             if (sgn < 0) {
@@ -210,6 +227,7 @@ class AggregatedEdgeProfit {
 
 export {
     Edge,
+    WeightedEdge,
     Profit,
     AggregatedEdge,
     AggregatedEdgeProfit,

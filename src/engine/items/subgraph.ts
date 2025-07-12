@@ -57,7 +57,7 @@ class UTXOTransferItem extends ContextualItem {
 export {
     PopItem,
     StrategySnapshotItem,
-    RankItem,
+    RankItem,    
     AccountTransferItem,
     UTXOTransferItem,
 }

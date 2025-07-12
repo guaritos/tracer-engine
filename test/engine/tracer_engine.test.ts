@@ -1,7 +1,7 @@
 import { PopItem, RankItem, StrategySnapshotItem } from '../../src/engine/items/subgraph';
 import { TracerEngine } from '../../src/engine/tracer_engine'
-import { Bucket } from '../utils/bucket';
-import { generateRandomAddress, generateRandomEdges } from '../utils/generate_edges';
+import { Bucket } from '../../src/utils/bucket'
+import { generateRandomAddress, generateRandomEdges } from '../../src/utils/generate_edges';
 
 describe('Tracer Engine Tests', () => {
     test('Tracer Engine push_pop with generated data', () => {

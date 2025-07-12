@@ -1,4 +1,4 @@
-import { Edge, Profit, AggregatedEdge, AggregatedEdgeProfit } from "../items/ttr_defs";
+import { Edge, WeightedEdge, Profit, AggregatedEdge, AggregatedEdgeProfit } from "../items/ttr_defs";
 import { PushPopModel } from './push_pop';
 
 class TTR extends PushPopModel {
@@ -7,6 +7,7 @@ class TTR extends PushPopModel {
     epsilon: number;
     p: Record<string, number>;
     r: Map<string, Profit[]>;
+    weighted_edges: WeightedEdge[];
     constructor(
         source: string,
         alpha: number = 0.15,
@@ -19,6 +20,7 @@ class TTR extends PushPopModel {
         this.epsilon = epsilon;
         this.p = {};
         this.r = new Map<string, Profit[]>();
+        this.weighted_edges = [];
     }
 
     push(node: any, edges: Edge[], ...kwargs: any[]): void {
@@ -37,6 +39,7 @@ class TTR extends PushPopModel {
             epsilon: this.epsilon,
             r: this.r,
             p: this.p,
+            weighted_edges: this.weighted_edges,
         };
     }
 
@@ -147,6 +150,8 @@ class TTRRedirect extends TTR {
         let agg_es = this._get_aggregated_edges(node, edges);
         agg_es.sort((a, b) => b.get_timestamp() - a.get_timestamp());
 
+        
+
         // mark edges as added after having been aggregated
         for (const e of edges) {
             this._added_edges_hash.add(e.hash);
@@ -159,14 +164,14 @@ class TTRRedirect extends TTR {
 
         // merge chips
         for (const [node, chips] of this.r.entries()) {
-            const _chips = new Map();
+            const _chips = new Map<string, Profit>();
             for (const chip of chips) {
                 const key = `${chip.symbol},${chip.timestamp}`;
                 if (!_chips.has(key)) {
                     _chips.set(key, chip);
                     continue;
                 }
-                _chips.get(key).value += chip.value;
+                _chips.get(key)!.value += chip.value;
             }
             this.r.set(node, Array.from(_chips.values()));
         }
@@ -243,7 +248,7 @@ class TTRRedirect extends TTR {
             while (j < r.length && e.get_timestamp() > r[j].timestamp) {
                 const c = r[j];
                 const symbol = c.symbol;
-                const inc_d = (c.value / W.get(String(c))!) || 0;
+                const inc_d = W.get(String(c)) !== 0 ? (c.value / W.get(String(c))!) : 0;
                 d.set(symbol, (d.get(symbol) || 0) + inc_d);
                 j += 1;
             }
@@ -255,7 +260,7 @@ class TTRRedirect extends TTR {
                 }
 
                 const distributing_profits = this._get_distributing_profit(
-                    1,
+                    -1,
                     profit.symbol,
                     i,
                     aggregated_edges,
@@ -263,6 +268,7 @@ class TTRRedirect extends TTR {
                     symbol_agg_es_idx,
                     inc
                 )
+                
                 for (const dp of distributing_profits) {
                     if (this.r.get(dp.address) === undefined) {
                         this.r.set(dp.address, []);
@@ -272,6 +278,15 @@ class TTRRedirect extends TTR {
                         symbol: dp.symbol,
                         timestamp: dp.timestamp,
                     });
+                    
+                    this.weighted_edges.push(new WeightedEdge({
+                        from: node,
+                        to: dp.address,
+                        weight: inc / distributing_profits.length,
+                        symbol: dp.symbol,
+                        hash: e.hash,
+                        timestamp: e.get_timestamp(),
+                    }));
                 }
             }
         }
@@ -388,6 +403,14 @@ class TTRRedirect extends TTR {
                             symbol: dp.symbol,
                             timestamp: dp.timestamp,
                         });
+                        this.weighted_edges.push(new WeightedEdge({
+                            from: dp.address,
+                            to: node,
+                            weight: inc / distributing_profits.length,
+                            symbol: dp.symbol,
+                            hash: e.hash,
+                            timestamp: e.get_timestamp(),
+                        }));
                     }
                 }
             }
@@ -477,7 +500,7 @@ class TTRRedirect extends TTR {
             }
             vis.add(args);
             const { direction, symbol, index } = args;
-            const cur_e = aggregated_edges[index];
+            const cur_e: AggregatedEdge = aggregated_edges[index];
             const no_reverse_profits = cur_e.profits.filter(profit => profit.value * direction > 0);
             const reverse_profits = cur_e.profits.filter(profit => profit.value * direction < 0);
 
@@ -522,7 +545,7 @@ class TTRRedirect extends TTR {
         let aggregated_edges = new Map<string, AggregatedEdge>();
         for (const edge of edges) {
             const hash = edge.hash;
-            const aggregated_edge = new AggregatedEdge(
+            let aggregated_edge: AggregatedEdge = new AggregatedEdge(
                 hash,
                 [new AggregatedEdgeProfit(
                     edge.from == node ? edge.to : edge.from,
@@ -532,12 +555,10 @@ class TTRRedirect extends TTR {
                 )],
                 [edge]
             );
-            let new_aggregated_edge = aggregated_edge.aggregate(aggregated_edges.get(hash));
-            if (new_aggregated_edge === null) {
-                continue;
-            }
-            aggregated_edges.set(hash, new_aggregated_edge);
-            if (new_aggregated_edge.profits.length === 0) {
+
+            aggregated_edge = aggregated_edge.aggregate(aggregated_edges.get(hash));
+            aggregated_edges.set(hash, aggregated_edge);
+            if (aggregated_edge.profits.length === 0) {
                 aggregated_edges.delete(hash);
             }
         }

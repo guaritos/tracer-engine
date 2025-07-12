@@ -101,6 +101,14 @@ class TTRRedirect extends TTR {
                             symbol: e.symbol,
                             timestamp: e.timestamp,
                         });
+                        this.weighted_edges.push({
+                            from: node,
+                            to: e.to,
+                            weight: value,
+                            symbol: e.symbol,
+                            hash: e.hash,
+                            timestamp: e.timestamp,
+                        })
                     }
                 } else if (e.to === this.source && (in_sum.get(e.symbol) || 0) !== 0) {
                     if (!this.r.has(e.from)) {
@@ -113,6 +121,14 @@ class TTRRedirect extends TTR {
                             symbol: e.symbol,
                             timestamp: e.timestamp,
                         });
+                        this.weighted_edges.push({
+                            from: e.from,
+                            to: node,
+                            weight: value,
+                            symbol: e.symbol,
+                            hash: e.hash,
+                            timestamp: e.timestamp,
+                        })
                     }
                 }
             }

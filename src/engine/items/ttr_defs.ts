@@ -8,6 +8,7 @@ class Edge {
      * @param _to - The address to which the transaction is directed.
      * @param _symbol - The symbol of the asset being transferred.
      * @param _value - The value of the asset being transferred.
+     * @param _type - The transaction contract type.
      * @param _hash - The hash of the transaction.
      * @param _timestamp - The timestamp of the transaction (optional).
      */
@@ -15,6 +16,7 @@ class Edge {
     to: string = "";
     symbol: string = "";
     value: number = 0;
+    type: string = "";
     hash: string = "";
     timestamp: number = 0;
 
@@ -23,6 +25,7 @@ class Edge {
         _to: string = "",
         _symbol: string = "",
         _value: number = 0,
+        _type: string = "",
         _timestamp: number = 0,
         _hash: string = "",
     ) {
@@ -30,6 +33,7 @@ class Edge {
         this.to = _to;
         this.symbol = _symbol;
         this.value = _value;
+        this.type = _type;
         this.hash = _hash;
         this.timestamp = _timestamp;
     }
@@ -40,14 +44,16 @@ class WeightedEdge {
     to: string;
     weight: number;
     symbol: string;
+    type: string;
     hash: string;
     timestamp: number;
 
-    constructor(params: {from: string, to: string, weight: number, symbol: string, hash: string, timestamp: number}) {
+    constructor(params: {from: string, to: string, weight: number, symbol: string, type: string, hash: string, timestamp: number}) {
         this.from = params.from;
         this.to = params.to;
         this.weight = params.weight;
         this.symbol = params.symbol;
+        this.type = params.type;
         this.hash = params.hash;
         this.timestamp = params.timestamp;
     }
@@ -76,15 +82,18 @@ class AggregatedEdge {
      */
 
     hash: string;
+    type: string;
     profits: AggregatedEdgeProfit[];
     aggregated_edges: any[];
 
     constructor(
         _hash: string,
+        _type: string,
         _profits: AggregatedEdgeProfit[],
         _aggregated_edges: any[],
     ) {
         this.hash = _hash;
+        this.type = _type;
         this.profits = _profits;
         this.aggregated_edges = _aggregated_edges;
     }

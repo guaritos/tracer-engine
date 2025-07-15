@@ -11,6 +11,8 @@ const generateRandomHash = (): string => {
     return '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('');
 };
 
+const event_type = "0x3::module::transfer";
+
 // Array of common cryptocurrency symbols
 const cryptoSymbols: string[] = ['BTC', 'ETH', 'USDT', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'SHIB', 'DOT'];
 
@@ -29,6 +31,7 @@ function generateRandomEdges(source: string, addresses: Bucket<string>, amount: 
             to: toAddress,
             symbol: symbol,
             value: value,
+            type: event_type,
             hash: hash,
             timestamp: timestamp,
         });

@@ -106,6 +106,7 @@ class TTRRedirect extends TTR {
                             to: e.to,
                             weight: value,
                             symbol: e.symbol,
+                            type: e.type,
                             hash: e.hash,
                             timestamp: e.timestamp,
                         })
@@ -126,6 +127,7 @@ class TTRRedirect extends TTR {
                             to: node,
                             weight: value,
                             symbol: e.symbol,
+                            type: e.type,
                             hash: e.hash,
                             timestamp: e.timestamp,
                         })
@@ -165,8 +167,6 @@ class TTRRedirect extends TTR {
         // aggregate edges
         let agg_es = this._get_aggregated_edges(node, edges);
         agg_es.sort((a, b) => b.get_timestamp() - a.get_timestamp());
-
-        
 
         // mark edges as added after having been aggregated
         for (const e of edges) {
@@ -300,6 +300,7 @@ class TTRRedirect extends TTR {
                         to: dp.address,
                         weight: inc / distributing_profits.length,
                         symbol: dp.symbol,
+                        type: e.type,
                         hash: e.hash,
                         timestamp: e.get_timestamp(),
                     }));
@@ -424,6 +425,7 @@ class TTRRedirect extends TTR {
                             to: node,
                             weight: inc / distributing_profits.length,
                             symbol: dp.symbol,
+                            type: e.type,
                             hash: e.hash,
                             timestamp: e.get_timestamp(),
                         }));
@@ -563,6 +565,7 @@ class TTRRedirect extends TTR {
             const hash = edge.hash;
             let aggregated_edge: AggregatedEdge = new AggregatedEdge(
                 hash,
+                edge.type,
                 [new AggregatedEdgeProfit(
                     edge.from == node ? edge.to : edge.from,
                     edge.from == node ? -edge.value : edge.value,
